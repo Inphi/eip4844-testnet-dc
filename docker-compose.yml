@@ -1,4 +1,4 @@
-version: '3'
+version: '3.4'
 
 services:
   geth:
@@ -7,8 +7,13 @@ services:
       - "8551:8551"
       - "8545:8545"
       - "30303:30303"
-    command:
-      - ./geth-entrypoint.sh
+    entrypoint: ['/usr/bin/geth-entrypoint.sh']
+    volumes:
+      - ./genesis.json:/etc/genesis.json:ro
+      - ./geth-entrypoint.sh:/usr/bin/geth-entrypoint.sh
+      - ./geth_static_nodes.toml:/etc/geth.toml
+      - ./jwtsecret:/etc/jwtsecret:ro
+
   prysm:
     build: .
     ports:
@@ -17,8 +22,12 @@ services:
       - "12000:12000"
       - "13000:13000"
     environment:
-      - HTTP_WEB3PROVIDER=http://geth:8545
+      - EXECUTION_ENDPOINT=http://geth:8551
     depends_on:
       - geth
     command:
       - ./prysm-entrypoint.sh
+    volumes:
+      - ./genesis.ssz:/etc/genesis.ssz:ro
+      - ./config.yml:/etc/config.yml:ro
+      - ./jwtsecret:/etc/jwtsecret:ro
